@@ -56,46 +56,29 @@ INSERT INTO `messages1` (`id`, `from_user_id`, `to_user_id`, `body`, `created_at
 INSERT INTO `messages1` (`id`, `from_user_id`, `to_user_id`, `body`, `created_at`) VALUES ('21', '103', '101', 'Mollitia et dicta temporibus eos voluptates eius. Iusto amet sequi consequuntur voluptas qui voluptatem. Quasi optio maxime quidem delectus velit libero. Aliquid est dolorem quam hic neque.', '1994-02-27 01:23:32');
 INSERT INTO `messages1` (`id`, `from_user_id`, `to_user_id`, `body`, `created_at`) VALUES ('22', '101', '102', 'Iusto aliquid non dicta molestias. Est et tempora minus nobis. Expedita consequatur enim quos repellendus soluta. Voluptatem repellat minus et et.', '2004-06-29 07:57:07');
 
-select * from messages m where 
-	 from_user_id = (select initiator_user_id from friend_requests1 fr where target_user_id = 101);
-	
-	
-select initiator_user_id as 'friend' from friend_requests1 fr where target_user_id = 101 and status = 'approved';
 
-select target_user_id as 'friend' from friend_requests1 fr where initiator_user_id = 101  and status = 'approved';
-
-select to_user_id, count(*) 
-from messages1 m 
-	where from_user_id = 101 and to_user_id in (select initiator_user_id as 'friend' from friend_requests1 fr where target_user_id = 101 and status like 'approved')
-group by to_user_id;
-
-select from_user_id, count(*) 
-from messages1 m 
-	where to_user_id = 101 and from_user_id in (select initiator_user_id as 'friend' from friend_requests1 fr where target_user_id = 101 and status like 'approved')
-group by from_user_id;
-
-select to_user_id, count(*) 
-from messages1 m 
-	where from_user_id = 101 and to_user_id in (select target_user_id as 'friend' from friend_requests1 fr where initiator_user_id = 101 and status like 'approved')
-group by from_user_id;
-
-select from_user_id, count(*) 
-from messages1 m 
-	where to_user_id = 101 and from_user_id in (select target_user_id as 'friend' from friend_requests1 fr where initiator_user_id = 101 and status like 'approved')
-group by to_user_id;
-
-select to_user_id, from_user_id, count(*) 
-from messages1 m 
-	where to_user_id = 101 
-		and from_user_id in ((select target_user_id as 'friend' from friend_requests1 fr where initiator_user_id = 101 and status like 'approved'), (select initiator_user_id as 'friend' from friend_requests1 fr where target_user_id = 101 and status like 'approved'))
-group by from_user_id;
-
-select to_user_id, from_user_id, count(*) 
-from messages1 m 
-	where from_user_id = 101 
-		and to_user_id in ((select target_user_id as 'friend' from friend_requests1 fr where initiator_user_id = 101 and status like 'approved'), (select initiator_user_id as 'friend' from friend_requests1 fr where target_user_id = 101 and status like 'approved'))
-group by to_user_id;
-
-
+select user_id, count_likes
+from (select user_id, count(user_id) as 'count_likes'
+	from (select id, to_user_id as 'user_id'
+		from messages1 m 
+			where from_user_id = 101 
+				and to_user_id in ((select target_user_id as 'friend' from friend_requests1 fr where initiator_user_id = 101 and status like 'approved'), (select initiator_user_id as 'friend' from friend_requests1 fr where target_user_id = 101 and status like 'approved'))
+		union
+		select id, from_user_id as 'user_id'
+		from messages1 m 
+			where to_user_id = 101 
+				and from_user_id in ((select target_user_id as 'friend' from friend_requests1 fr where initiator_user_id = 101 and status like 'approved'), (select initiator_user_id as 'friend' from friend_requests1 fr where target_user_id = 101 and status like 'approved'))) as a
+		group by user_id) as b
+where count_likes = (select MAX(count_likes) from (select user_id, count(user_id) as 'count_likes'
+	from (select id, to_user_id as 'user_id'
+		from messages1 m 
+			where from_user_id = 101 
+				and to_user_id in ((select target_user_id as 'friend' from friend_requests1 fr where initiator_user_id = 101 and status like 'approved'), (select initiator_user_id as 'friend' from friend_requests1 fr where target_user_id = 101 and status like 'approved'))
+		union
+		select id, from_user_id as 'user_id'
+		from messages1 m 
+			where to_user_id = 101 
+				and from_user_id in ((select target_user_id as 'friend' from friend_requests1 fr where initiator_user_id = 101 and status like 'approved'), (select initiator_user_id as 'friend' from friend_requests1 fr where target_user_id = 101 and status like 'approved'))) as c
+group by user_id) as d);
 
 
